@@ -14,7 +14,7 @@ function Signup({setIsLogin}) {
     e.preventDefault();
     const config = {
       withCredentials: true,
-      header:{'Content-Type' : 'application/json'}
+      headers:{'Content-Type' : 'application/json'}
     }
 
     try{

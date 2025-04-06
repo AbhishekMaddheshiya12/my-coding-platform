@@ -16,13 +16,13 @@ function Login({setIsLogin}) {
 
     const config = {
       withCredentials: true,
-      header:{'Content-Type' : 'application/json'}
+      headers:{'Content-Type' : 'application/json'}
     }
 
     try{
       const {data} = await axios.post('http://localhost:4000/user/login',{username:userName,password,email},config);
       console.log(data);
-      dispatch(userExist(true));
+      dispatch(userExist(data.user));
     }catch(error){
       console.log(error);
     }

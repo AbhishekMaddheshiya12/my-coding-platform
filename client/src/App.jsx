@@ -1,19 +1,20 @@
 import "./App.css";
-import Home from "./pages/Home";
-import ProblemTable from "./components/ProblemTable";
-import Solution from "./pages/Solution";
-import LandingPage from "./pages/LandingPage";
+import React, { Suspense, useEffect, useState } from "react";
 import { Route, Routes } from "react-router";
-import problems from "./fakeData/problems.js";
-import Profiles from "./pages/Profiles";
-import AboutUs from "./pages/AboutUs.jsx";
-import Discuss from "./pages/Discuss.jsx";
-import ProtectedComponent from "./components/auth/ProtectedComponent.jsx";
 import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
-import { useEffect, useState } from "react";
-import { userExist } from "./redux/reducers/auth.js";
-import HomePage from "./pages/HomePage.jsx";
+import { userExist, userNotExist } from "./redux/reducers/auth.js";
+const Home = React.lazy(() => import("./pages/Home"));
+const ProblemTable = React.lazy(() => import("./components/ProblemTable"));
+const Solution = React.lazy(() => import("./pages/Solution"));
+const LandingPage = React.lazy(() => import("./pages/LandingPage"));
+const Profiles = React.lazy(() => import("./pages/Profiles.jsx"))
+const AboutUs = React.lazy(() => import("./pages/AboutUs.jsx"))
+const Discuss = React.lazy(() => import("./pages/Discuss.jsx"))
+import ProtectedComponent from "./components/auth/ProtectedComponent.jsx";
+import problems from "./fakeData/problems.js";
+import Loader from "./components/loader/Loader.jsx";
+const HomePage = React.lazy(() => import("./pages/HomePage.jsx"));
 
 function App() {
   const [authChecked,setAuthChecked] = useState(false);
@@ -24,21 +25,23 @@ function App() {
       try {
         const config = {
           withCredentials: true,
-          header: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json" },
         };
         const data = await axios.get("http://localhost:4000/user/me", config);
         console.log(data);
         dispatch(userExist(data.data.user));
       } catch (error) {
         console.log(error);
+        dispatch(userNotExist())
       } finally{
         setAuthChecked(true);
       }
     };
     getDetails();
-  }, []);
+  }, [dispatch]);
   return (
-    <Routes>
+    <Suspense fallback = {<Loader></Loader>}>
+      <Routes>
       <Route element={<ProtectedComponent user={user} authChecked={authChecked}></ProtectedComponent>}>
         <Route path="/home" element={<Home />} />
         <Route
@@ -66,6 +69,7 @@ function App() {
         </ProtectedComponent>}
       ></Route>
     </Routes>
+    </Suspense>
   );
 }
 

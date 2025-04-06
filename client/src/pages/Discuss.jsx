@@ -1,5 +1,5 @@
 import React, { Fragment, useEffect, useState, useRef } from "react";
-import { Box, Grid, IconButton, Stack } from "@mui/material";
+import { Box, Grid, Grid2, IconButton, Stack } from "@mui/material";
 import { io } from "socket.io-client";
 import SendIcon from "@mui/icons-material/Send";
 import NavBar from "../components/NavBar";
@@ -7,14 +7,87 @@ import User from "../components/User";
 import MessageComponent from "../components/MessageComponent";
 import { InputBox } from "../components/StyledComp";
 import { useDispatch, useSelector } from "react-redux";
+import axios from "axios";
+import Loader from "../components/loader/Loader";
+import { userExist } from "../redux/reducers/auth";
 
 function Discuss() {
   const dispatch = useDispatch();
   const user = useSelector(state => state.auth.user);
-  console.log(user);
   const [message, setMessage] = useState("");
+  const [page,setPage] = useState(1);
   const [messages, setMessages] = useState([]);
+  const [loader,setLoader] = useState(true);
+  const containerRef = useRef(null);//In leamon terms ref is a container that do not change its value on changing the state 
   const socketRef = useRef(null);
+
+                                                            // TO DO
+
+// useEffect(() => {
+//   const element = containerRef.current;
+  
+//   const handleScroll = () => {
+//     if(!element) return;
+
+//     const {scrollTop, scrollHeight, offsetHeight} = element;
+//     console.log(scrollTop, scrollHeight, offsetHeight);
+
+//     if (scrollTop === 0) {
+//       setPage((prev) => prev + 1);
+//       console.log("Scrolled to top — loading previous page", page + 1);
+//     }
+
+//     // Scrolled to bottom (load next page or auto-scroll)
+//     if (scrollTop + offsetHeight >= scrollHeight) {
+//       setPage((prev) => Math.max(1, prev - 1)); // example logic
+//       console.log("Scrolled to bottom — maybe next page", page - 1);
+//     }
+//   };
+
+//   if (element) {
+//     element.addEventListener("scroll", handleScroll);
+//   }
+
+//   return () => {
+//     if (element) {
+//       element.removeEventListener("scroll", handleScroll);
+//     }
+//   };
+// }, [page]);
+
+useEffect(() => {
+  console.log(containerRef);
+  if(containerRef?.current) {
+    const element = containerRef.current;
+    element.scrollTo({
+      top: element.scrollHeight,
+      left: 0,
+      behavior: "smooth"
+    });
+  }
+}, [ messages]);
+  
+  useEffect(()=>{
+    console.log("current Page",page);
+    const getMessage = async() =>{
+      setLoader(true);
+      try{
+        const config = {
+          withCredentials:true,
+          headers: { "Content-Type": "application/json" }
+        }
+        const newMessage = await axios.get(`http://localhost:4000/user/getMessages/{page}`,config);
+        console.log(newMessage.data.message);
+        setMessages(newMessage.data.message);
+        setLoader(false);
+        console.log(messages);
+      }catch(error){
+        console.log(error);
+      }
+    }
+    getMessage();
+  },[page])
+
 
   useEffect(() => {
     socketRef.current = io("http://localhost:4000", {
@@ -45,14 +118,15 @@ function Discuss() {
   return (
     <Box sx={{ height: "100vh" }}>
       <NavBar />
-      <Grid container spacing={2} sx={{ height: "calc(100vh - 64px)", marginTop: "10px" }}>
-        <Grid item xs={12} md={3} sx={{ backgroundColor: "#1A2B4A", borderRadius: "10px" }}>
-          <User />
-        </Grid>
-        <Grid item xs={12} md={9} sx={{ display: "flex", flexDirection: "column", background: "linear-gradient(135deg,rgb(90, 103, 130) 40%,rgb(255, 255, 255) 100%)", borderRadius: "10px", height: "calc(100vh - 74px)", padding: "10px" }}>
-          <Stack sx={{ flexGrow: 1, overflowY: "auto", padding: "10px" }}>
+      <Grid2 container spacing={2} sx={{ height: "calc(100vh - 64px)", marginTop: "10px" }}>
+        <Grid2 item size={{xs:6,md:3}} sx={{ backgroundColor: "#1A2B4A", borderRadius: "10px" }}>
+          <User userData = {user} />
+        </Grid2>
+        {
+          loader?<Loader></Loader>: <Grid2 item size={{xs:6,md:9}} sx={{ display: "flex", flexDirection: "column", background: "linear-gradient(135deg,rgb(90, 103, 130) 40%,rgb(255, 255, 255) 100%)", borderRadius: "10px", height: "calc(100vh - 74px)", padding: "10px" }}>
+          <Stack ref = {containerRef} boxSizing="border-box" height="90%" sx={{ flexGrow: 1, overflowY: "auto", padding: "10px", "&::-webkit-scrollbar":{display:"none"} }}>
             {messages.length > 0 ? messages.map((i) => (
-              <MessageComponent key={i.id} sender={i.sender} message={i.message} sendername={i.sendername} />
+              <MessageComponent key={i.id} sender={i.sender._id} message={i.message} sendername={i.sender.username} date = {i.createdAt} />
             )) : <p>No messages to display</p>}
           </Stack>
           <hr style={{ color: "#1A2B4A", width: "100%", margin: "10px 0" }} />
@@ -62,8 +136,9 @@ function Discuss() {
               <SendIcon />
             </IconButton>
           </form>
-        </Grid>
-      </Grid>
+        </Grid2>
+        }
+      </Grid2>
     </Box>
   );
 }

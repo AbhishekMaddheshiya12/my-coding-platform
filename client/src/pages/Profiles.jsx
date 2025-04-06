@@ -19,7 +19,7 @@ function Profiles() {
         try{
           const config = {
             withCredentials: true,
-            header: { "Content-Type": "application/json" },
+            headesr: { "Content-Type": "application/json" },
           }
           const user = await axios.get(`http://localhost:4000/user/getUserDetails/${userId}`,config);
           console.log(user);

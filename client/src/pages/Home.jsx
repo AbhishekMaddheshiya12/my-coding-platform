@@ -15,9 +15,12 @@ import { useNavigate } from "react-router";
 import NavBar from "../components/NavBar";
 import Image1 from "../assets/Dsa.png";
 import Profile from "../components/Profile";
+import { useDispatch, useSelector } from "react-redux";
+import { userExist } from "../redux/reducers/auth";
 
 function Home() {
-  const cards = [1, 2, 3, 4, 5];
+  const user = useSelector(state => state.auth.user);
+  console.log(user);
   return (
     <Box sx={{height: '100vh' ,background: "linear-gradient(135deg,rgb(90, 103, 130) 40%,rgb(255, 255, 255) 100%)"}}>
       <Box sx={{}}>

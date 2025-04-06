@@ -9,8 +9,6 @@ import axios from "axios";
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 function Profile() {
-  const dispatch = useDispatch();
-  
   const userId = useSelector(state => state.auth.user._id);
   const [userData,setUserData] = useState({});
     useEffect(() => {
