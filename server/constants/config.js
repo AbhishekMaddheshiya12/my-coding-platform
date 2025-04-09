@@ -3,4 +3,7 @@ const corsOption = {
     Credential:true
 }
 
-export {corsOption};
+const getBase64 = (file) => `data:${file.mimetype};base64,${file.buffer.toString('base64')}`
+
+export {corsOption,getBase64};
+

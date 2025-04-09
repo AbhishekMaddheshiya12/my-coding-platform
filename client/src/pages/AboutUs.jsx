@@ -13,7 +13,6 @@ import {
 } from '@mui/material';
 import NavBar from '../components/NavBar';
 
-// Mock images (replace with your actual imports)
 const heroImage = 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80';
 const codeSubmission = 'https://cdn-icons-png.flaticon.com/512/2933/2933245.png';
 const discussion = 'https://cdn-icons-png.flaticon.com/512/2452/2452499.png';
@@ -184,7 +183,6 @@ function AboutUs() {
         </Button>
       </Container>
 
-      {/* Footer */}
       <Box component="footer" sx={{ bgcolor: 'background.paper', py: 4, textAlign: 'center' }}>
         <Container maxWidth="lg">
           <Typography variant="body1" sx={{ mb: 1 }}>

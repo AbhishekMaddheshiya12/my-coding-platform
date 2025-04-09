@@ -8,11 +8,12 @@ import axios from "axios";
 import CheckBoxIcon from "@mui/icons-material/CheckBox";
 import TaskAltRoundedIcon from "@mui/icons-material/TaskAltRounded";
 import { useParams } from "react-router";
+import { useSelector } from "react-redux";
 
 function PlayGround({ tesTCases }) {
   const { problemId } = useParams();
 
-  const userId = "67aeedb92a22d7380ae039c9";
+  const userId = useSelector(state => state.auth.user._id);
 
   const [language, setLanguage] = useState(() => {
     const savedLanguage = localStorage.getItem("selectedLanguage");
@@ -22,7 +23,7 @@ function PlayGround({ tesTCases }) {
   const [code, setCode] = useState("");
   const [failed, setFailed] = useState(false);
   const [testCases, setTestCases] = useState(tesTCases);
-  const [story,setStory] = useState("Accepted");
+  const [story,setStory] = useState("");
 
   const monaco = useMonaco();
 
@@ -68,7 +69,6 @@ function PlayGround({ tesTCases }) {
     python: 4,
   };
 
-  // This block of code is taken from the chatgpt
   const encodeBase64 = (str) => {
     return btoa(
       new TextEncoder()
@@ -83,134 +83,32 @@ function PlayGround({ tesTCases }) {
     setFailed(false);
   },[code])
 
-  // The referance is taken from the documentation of judge0 extra CE
-  const handleRunCode = async () => {
-    try {
-      const submissions = testCases.map((test) => ({
-        language_id: language_id[language],
-        source_code: base64EncodedCode,
-        stdin: encodeBase64(test.input),
-        expected_output: encodeBase64(test.expectedOutput),
-        callback_url: "https://localhost:4000/user/judge0-callback",
-      }));
 
-      console.log("Submissions:", submissions); // The line is for the debugging the submisson after the testcase mapping
+  const data = {
+    language_id:language_id[language],
+    base64EncodedCode:base64EncodedCode,
+    problemId:problemId
+  }
 
-      const options = {
-        method: "POST",
-        url: "https://judge0-extra-ce.p.rapidapi.com/submissions/batch",
-        params: {
-          base64_encoded: "true",
-          wait: "false",
-          fields: "*",
-        },
-        headers: {
-          'x-rapidapi-key': 'bb2e866215msh150f4914a869517p1f7dc2jsn6c612857138c',
-          "x-rapidapi-host": "judge0-extra-ce.p.rapidapi.com",
-          "Content-Type": "application/json",
-        },
-        data: { submissions },
-      };
-
-      const response = await axios.request(options);
-      console.log("Batch Submission Response:", response.data);
-
-      if (response.data) {
-        const tokens = response.data.map((submission) => submission.token); //I was getting error here meanwhile i was not doing that and passes it dorectly
-        const finalResult = await getSubmissionResult(tokens);
-        return finalResult;
-        console.log(finalResult);
-      }
-      console.log("hello handlesRunCode");
-      return [];
-    } catch (error) {
-      console.error("Error in handleRunCode:", error);
+  const handleRunCode = async() => {
+    const config = {
+      withCredentials: true,
+      header: { "Content-Type": "application/json" },
     }
-  };
+    try{
+      const res = await axios.post('http://localhost:4000/user/getSubmission',data,config);
+      console.log(res);
+      const {updatedTestCases,results,hasFailure,failureStatus} = res.data;
 
-  const getSubmissionResult = async (tokens) => {
-    const options = {
-      method: "GET",
-      url: "https://judge0-extra-ce.p.rapidapi.com/submissions/batch",
-      params: {
-        tokens: tokens.join(","), // Join tokens with commas
-        base64_encoded: "true",
-        fields: "*",
-      },
-      headers: {
-        'x-rapidapi-key': 'bb2e866215msh150f4914a869517p1f7dc2jsn6c612857138c',
-        "x-rapidapi-host": "judge0-extra-ce.p.rapidapi.com",
-      },
-    };
-  
-    try {
-      const response = await axios.request(options);
-      const { submissions } = response.data;
-  
-      if (!submissions || submissions.length === 0) {
-        console.error("No submissions returned.");
-        return [];
-      }
-  
-      const results = [];
-      const processingTokens = [];
-      let hasFailure = false;
-      let failureStatus = "Accepted"; 
-  
-      submissions.forEach((submission, index) => {
-        if (!submission || submission.status.description === "Processing") {
-          processingTokens.push(tokens[index]);
-        } else {
-          const status = submission.status.description;
-          results.push({
-            id: index + 1,
-            status,
-            stdout: atob(submission.stdout || ""), // Decode base64 stdout
-            stderr: atob(submission.stderr || ""), // Decode base64 stderr
-          });
-  
-          if (status !== "Accepted" && !hasFailure) {
-            hasFailure = true;
-            failureStatus = status;
-          }
-        }
-      });
-  
-      console.log("Processed Results:", results);
+      setTestCases(updatedTestCases);
+      setFailed(hasFailure);
+      setStory(failureStatus);
 
-      if (processingTokens.length > 0) {
-        console.log(
-          `Retrying for ${processingTokens.length} submissions still processing...`
-        );
-        const retryResults = await getSubmissionResult(processingTokens); // Recursively retry
-        results.push(...retryResults); // Merge retry results with current results
-      }
-  
-      // If all submissions are processed, update the test cases and state
-      if (processingTokens.length === 0) {
-        console.log("Final Results:", results);
-  
-        // Update testCases with results
-        setTestCases((prevTestCases) =>
-          prevTestCases.map((testCase, index) => ({
-            ...testCase,
-            status: results[index]?.status || "Unknown",
-          }))
-        );
-  
-        // Update failed and story state if any submission failed
-        if (hasFailure) {
-          setFailed(true);
-          setStory(failureStatus);
-        }
-      }
-  
       return results;
-    } catch (error) {
-      console.error("Error fetching batch results:", error);
-      return []; 
+    }catch(error){
+      console.log(error);
     }
-  };
+  }
 
   const setAttempt = async () => {
     try {
@@ -222,7 +120,7 @@ function PlayGround({ tesTCases }) {
           story = result.status;
        }
      })
-      console.log("Story after handleRunCode:", story); // Now this should log the updated story
+      console.log("Story after handleRunCode:", story); 
   
       const config = {
         withCredentials: true,
@@ -347,11 +245,7 @@ function PlayGround({ tesTCases }) {
               </Box>
             ))}
             <Box>
-              {failed ? (
-                <Typography color="red">Failed</Typography>
-              ) : (
-                <Typography color="green">Success</Typography>
-              )}
+              <Typography sx={{color:getColor(story)}}>{story}</Typography>
             </Box>
           </Box>
         </Box>

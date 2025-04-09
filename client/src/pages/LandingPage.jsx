@@ -16,7 +16,6 @@ function LandingPage() {
 
   return (
     <Box height={"100vh"}>
-      {/* NavBar */}
       <NavBar></NavBar>
 
         <div

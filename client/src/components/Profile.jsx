@@ -10,6 +10,7 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 
 function Profile() {
   const userId = useSelector(state => state.auth.user._id);
+  const avatarUrl = useSelector(state => state.auth.user.avatarUrl);
   const [userData,setUserData] = useState({});
     useEffect(() => {
         const fetchUserDetails = async () => {
@@ -33,6 +34,7 @@ function Profile() {
     const ProblemSolved = [];
     problemSolved?.forEach((problemId) => {
       const prob = problems.find((problem) => problem.id === problemId);
+      console.log(prob);
       ProblemSolved.push(prob);
       if(prob.difficulty === "Easy"){
         solvedChart[0] = solvedChart[0] + 1;
@@ -43,35 +45,19 @@ function Profile() {
       }
     })
 
-  const chartData = {
-    labels: ["Difficulty"],
-    datasets: [
-      {
-        label: "Easy",
-        data: solvedChart[0],
-        backgroundColor: "#4caf50", // Green
-        borderColor: "#388e3c",
-        borderWidth: 1,
-        borderRadius: 4,
-      },
-      {
-        label: "Medium",
-        data: solvedChart[1],
-        backgroundColor: "#ffca28", // Yellow
-        borderColor: "#ffb300",
-        borderWidth: 1,
-        borderRadius: 4,
-      },
-      {
-        label: "Hard",
-        data: solvedChart[2],
-        backgroundColor: "#ef5350", // Red
-        borderColor: "#d32f2f",
-        borderWidth: 1,
-        borderRadius: 4,
-      },
-    ],
-  };
+    console.log(solvedChart);
+
+    const barData = {
+      labels:["Easy","Medium","Hard"],
+      datasets:[{
+        label:"Problems Solved",
+        data:solvedChart,
+        backgroundColor:["#4caf50","#ffca28","#ef5350"],
+        borderColor:["#388e3c","#ffb300","#d32f2f"],
+        borderWidth:2,
+        borderRadius:6,
+      }]
+    }
 
   const chartOptions = {
     responsive: true,
@@ -147,6 +133,7 @@ function Profile() {
             border: "3px solid #fff",
             boxShadow: "0 2px 10px rgba(0, 0, 0, 0.3)",
           }}
+          src={avatarUrl}
         />
         <Typography variant="h6" color="#fff" sx={{ mt: 2 }}>
           {userData.username}
@@ -159,7 +146,7 @@ function Profile() {
       {/* Chart Section */}
       <Box sx={{ p: 3 }}>
         <Box sx={{ height: "50vh" }}>
-          <Bar data={chartData} options={chartOptions} />
+          <Bar data={barData} options={chartOptions} />
         </Box>
       </Box>
     </Paper>

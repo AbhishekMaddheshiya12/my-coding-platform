@@ -6,6 +6,7 @@ import { useSelector } from 'react-redux';
 function User() {
   const [userData,setUser] = useState({});
   const userId = useSelector(state => state.auth.user._id);
+  const avatarUrl = useSelector(state => state.auth.user.avatarUrl);
   useEffect(() => {
     const fetchUser = async() => {
       try{
@@ -30,7 +31,7 @@ function User() {
   return (
     <Box>
         <Box sx={{width:'100%',display:'flex',justifyContent:'center',marginTop:'10%'}}>
-                <Avatar sx={{width:'160px',height:'160px',border:'4px solid white',transition:'transform 0.3s ease-in-out','&:hover':{transform:'scale(1.1)'}}}></Avatar>
+                <Avatar sx={{width:'160px',height:'160px',border:'4px solid white',transition:'transform 0.3s ease-in-out','&:hover':{transform:'scale(1.1)'}}} src={avatarUrl}></Avatar>
             </Box>
             <Box mt={3}>
               <Typography sx={{fontSize:'20px',color:'white',textAlign:'center'}}>{userData.username}</Typography>

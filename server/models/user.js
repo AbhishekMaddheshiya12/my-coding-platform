@@ -27,7 +27,10 @@ const userSchema = new mongoose.Schema({
     }],
     languages:[{
         type:String,
-    }]
+    }],
+    avatarUrl:{
+        type:String,
+    }
 },{timestamps:true});
 
 export const User = mongoose.model.User || mongoose.model("User",userSchema)
